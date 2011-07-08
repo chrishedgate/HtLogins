@@ -1,0 +1,98 @@
+
+<html>
+<head>
+	<title>Hattrick Labs - Logins right now</title>
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+<script type="text/javascript">
+
+var HT = HT || {};
+
+HT.LoginMap = (function() {
+	var myLat = 5;
+	var myLong = 0;
+	var map;
+	var _init = function(){
+    		var latlng = new google.maps.LatLng(myLat, myLong);
+    		var myOptions = {
+      			zoom: 3,
+      			center: latlng,
+      			mapTypeId: google.maps.MapTypeId.HYBRID
+    		};
+
+    		map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	};
+	var _drawLogin = function(longitute, latitude){
+		var loginLocation = new google.maps.LatLng(longitute, latitude);
+
+		var circleOptions = {
+      			strokeColor: "#FF0000",
+			strokeOpacity: 0.8,
+			strokeWeight: 2,
+      			fillColor: "#FF0000",
+      			fillOpacity: 0.35,
+      			map: map,
+      			center: loginLocation,
+      			radius: 10000
+    		};
+    		loginCircle = new google.maps.Circle(circleOptions);
+		_animateLogin(loginCircle);
+	};
+	var _drawLogins = function(source){
+		source.start(function(longitude, latitude){
+			_drawLogin(longitude, latitude);
+		});
+	};
+	var _animateLogin = function(circle){
+		var n = 0;
+		var id = setInterval(function(){
+			switch(n){
+				case 0:
+					circle.setRadius(100000);
+					break;
+				case 1:
+					circle.setRadius(200000);
+					break;
+				case 2:
+					circle.setRadius(10000);
+					break;
+			}
+			n++;
+		},600);
+
+		setTimeout(function(){ 
+			clearInterval(id);  
+			setTimeout(function(){ circle.setMap(null); }, 3000);
+		}, 2000);
+	};
+	return {
+		init:_init,
+		drawLogins:_drawLogins,
+	}
+})();
+
+var loginSource = (function(){
+	var _start = function(callback){
+		var socket = io.connect();
+		socket.on("message", function(msg) {
+			var login = msg.data;
+			callback(login.longitude, login.latitude);
+		});
+	};
+	return{
+		start:_start
+	}
+})();
+
+
+HT.LoginMap.drawLogins(loginSource);
+
+
+</script>
+
+</head>
+<body onload="HT.LoginMap.init()">
+	<div id="map_canvas" style="width:100%; height:100%"></div>
+</body>
+</html>
