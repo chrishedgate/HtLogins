@@ -45,25 +45,28 @@ HT.LoginMap = (function() {
 		});
 	};
 	var _animateLogin = function(circle){
-		var n = 0;
+		var n = 1;
+		var startRadius = 100000;
+		var turn = false;
 		var id = setInterval(function(){
-			switch(n){
-				case 0:
-					circle.setRadius(100000);
-					break;
-				case 1:
-					circle.setRadius(200000);
-					break;
-				case 2:
-					circle.setRadius(10000);
-					break;
-			}
-			n++;
-		},600);
+        		if(n==5) {
+                		turn = true;
+	        	}
 
-		setTimeout(function(){ 
-			clearInterval(id);  
-			setTimeout(function(){ circle.setMap(null); }, 3000);
+        		var r = (startRadius * (n/2)) /map.zoom;
+
+	        	circle.setRadius(r);
+
+        		if(turn){
+                		n = n-1;
+	        	}else{
+        	        	n = n+1;
+	        	}
+		},200);
+
+		setTimeout(function(){
+        		clearInterval(id);
+	        	setTimeout(function(){ circle.setMap(null); }, 3000);
 		}, 2000);
 	};
 	return {
@@ -72,12 +75,21 @@ HT.LoginMap = (function() {
 	}
 })();
 
+
+
+
 var loginSource = (function(){
 	var _start = function(callback){
 		var socket = io.connect();
 		socket.on("message", function(msg) {
-			var login = msg.data;
-			callback(login.longitude, login.latitude);
+			if(msg.time){
+				var clock = document.getElementById("clock"); 
+				clock.innerHTML = msg.time;
+			}
+			if(msg.data){
+				var login = msg.data;
+				callback(login.longitude, login.latitude);
+			};
 		});
 	};
 	return{
@@ -93,6 +105,7 @@ HT.LoginMap.drawLogins(loginSource);
 
 </head>
 <body onload="HT.LoginMap.init()">
-	<div id="map_canvas" style="width:100%; height:100%"></div>
+<div id="clock"> </div>
+<div id="map_canvas" style="width:100%; height:100%"></div>
 </body>
 </html>

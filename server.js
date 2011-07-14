@@ -51,34 +51,29 @@ var n = 0;
 io.sockets.on("connection", function(socket) {
 });
 
+
+
+
 function checkForLogins() {
 	if(!ready) return;
 
 	var done = false;
 	now = new Date(now.valueOf() + 1000);
+	io.sockets.json.send({"time":now });
 
 console.dir(now);
 	
 	while(!done) {
 		var line = JSON.parse(lines[n]);
 		var lineDate = new Date(line.loginDate);
-console.dir(lineDate);
+		console.dir(lineDate);
 		if(line && lineDate < now) {
-/*
-			var options = {
-				host: '',
-				port: 80,
-				path: ''
-			};
-
-			http.get(options, function(res) {
-			}).on('error', function(e) {
-				console.log('http error');
-			});
-*/
 			var longitude = line.latitude;
 			var latitude = line.longitude;
+			var loginDate = line.loginDate;
+
 			io.sockets.json.send({"data": {"longitude":longitude,"latitude":latitude}});
+			
 			n++;
 		} else {
 			done = true;
